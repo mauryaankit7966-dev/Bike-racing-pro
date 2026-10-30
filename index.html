@@ -4,524 +4,217 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>BIKE RACING PRO 3D</title>
+<title>Bike Racing 3D</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;overflow:hidden;background:#07101c;color:white;font-family:Arial;touch-action:none}
-#game{position:fixed;inset:0}
-#game canvas{display:block;width:100%;height:100%}
-button,select{border:0;border-radius:11px;padding:11px;background:#ed254c;color:white;font-weight:bold;font-size:14px}
-button:active{transform:scale(.95)}
-#hud{position:absolute;top:8px;left:0;width:100%;display:flex;justify-content:space-around;z-index:2;pointer-events:none}
-.stat{background:#07101ddd;padding:9px;border-radius:10px;font-size:13px}
-#menu{position:absolute;inset:0;z-index:5;background:linear-gradient(135deg,#091629f5,#102d43f5);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:9px;padding:12px;overflow:auto}
-#menu h1{font-size:28px;color:#ff3155;margin:4px}
-#menu p{margin:4px;color:#c6d7e9}
-.panel{background:#15263dcc;border:1px solid #ffffff22;border-radius:14px;padding:12px;width:min(340px,95%)}
-select{width:100%;background:#20334c;margin:5px 0}
-.menuButtons{display:grid;grid-template-columns:1fr 1fr;gap:7px;width:min(340px,95%)}
-.menuButtons button{font-size:12px}
-#controls{position:absolute;bottom:10px;left:0;width:100%;display:flex;justify-content:space-around;gap:3px;z-index:3}
-#controls button{width:19%;height:58px;padding:3px;background:#101c31e8;border:1px solid #ffffff66;font-size:12px}
-#controls .gas{background:#ed254c}
-#top{position:absolute;right:7px;top:57px;z-index:3;display:flex;gap:5px}
-#top button{font-size:11px;padding:8px}
-#tiltStatus{position:absolute;top:60px;left:7px;background:#07101dcc;padding:8px;border-radius:8px;font-size:11px;z-index:3}
-#message{position:absolute;top:40%;width:100%;text-align:center;font-size:27px;font-weight:bold;text-shadow:0 3px 8px black;z-index:4;pointer-events:none}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101827;font-family:Arial,sans-serif;touch-action:none}
+#game{position:fixed;inset:0}canvas{display:block;width:100%;height:100%}
+#hud{position:fixed;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;gap:8px;z-index:5;color:white;pointer-events:none}
+.pill{background:#07111dcc;border:1px solid #ffffff35;border-radius:12px;padding:8px 12px;font-weight:bold;text-shadow:0 1px 2px #000}
+#menu{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;background:linear-gradient(#06101a88,#06101acc);padding:18px}
+.panel{width:min(420px,100%);padding:24px;border-radius:20px;background:#101c2af2;color:white;text-align:center;border:1px solid #ffffff30;box-shadow:0 12px 50px #0008}
+h1{margin:0 0 8px;font-size:30px;color:#ffd34e}p{line-height:1.45;color:#d6e1ee}
+button{border:0;border-radius:12px;padding:13px 18px;font-size:17px;font-weight:bold;background:#ffbd2e;color:#18202b;cursor:pointer}
+#start{width:100%;margin-top:10px}#hint{font-size:13px;color:#b9c7d8}
+#controls{position:fixed;bottom:22px;left:0;right:0;z-index:6;display:flex;justify-content:space-between;padding:0 22px;pointer-events:none}
+.ctrl{pointer-events:auto;width:76px;height:66px;border-radius:18px;background:#07111dcc;color:white;border:1px solid #ffffff55;font-size:28px;touch-action:none}
+#pause{position:fixed;right:12px;top:66px;z-index:7;padding:9px 13px;font-size:14px}
 .hidden{display:none!important}
-#help{max-width:330px;font-size:12px}
+#error{position:fixed;bottom:4px;left:5px;right:5px;color:#ffb4b4;font-size:12px;text-align:center;z-index:20;pointer-events:none}
 </style>
 </head>
 <body>
 <div id="game"></div>
-
 <div id="hud">
- <div class="stat">⚡ <span id="speed">0</span> KM/H</div>
- <div class="stat">🏆 <span id="score">0</span></div>
- <div class="stat">🪙 <span id="coins">0</span></div>
+ <div class="pill">स्कोर: <span id="score">0</span></div>
+ <div class="pill">कॉइन: <span id="coins">0</span></div>
+ <div class="pill">स्पीड: <span id="speed">0</span></div>
 </div>
-
-<div id="tiltStatus">📱 Tilt: OFF</div>
-<div id="top">
- <button onclick="toggleSound()">🔊 SOUND</button>
- <button onclick="pauseGame()">⏸ PAUSE</button>
+<button id="pause" class="hidden">⏸ रोकें</button>
+<div id="controls" class="hidden">
+ <button class="ctrl" id="left">◀</button>
+ <button class="ctrl" id="right">▶</button>
 </div>
-<div id="message"></div>
-
-<div id="controls">
- <button id="left">◀ LEFT</button>
- <button id="brake">BRAKE</button>
- <button id="nitro">⚡ NITRO</button>
- <button id="gas" class="gas">GO ▲</button>
- <button id="right">RIGHT ▶</button>
-</div>
-
 <div id="menu">
- <h1>🏍️ BIKE RACING PRO</h1>
- <p>ULTIMATE 3D MOTORCYCLE RACING</p>
  <div class="panel">
-  <p>SELECT MAP</p>
-  <select id="map">
-   <option value="city">🏙️ City Highway</option>
-   <option value="village">🌳 Village Road</option>
-   <option value="desert">🏜️ Desert Road</option>
-   <option value="river">🌊 River Bridge</option>
-  </select>
-  <p>SELECT BIKE COLOR</p>
-  <select id="color">
-   <option value="red">Red Superbike</option>
-   <option value="blue">Blue Superbike</option>
-   <option value="green">Green Superbike</option>
-   <option value="yellow">Yellow Superbike</option>
-   <option value="white">White Superbike</option>
-  </select>
-  <p id="shopInfo">Coins: 0</p>
+  <h1>🏍️ BIKE RACING 3D</h1>
+  <p id="message">ट्रैफिक से बचें और ज्यादा से ज्यादा कॉइन इकट्ठा करें।</p>
+  <button id="start">START RACE</button>
+  <p id="hint">मोबाइल: नीचे के बटन दबाएँ • कंप्यूटर: ← → या A / D</p>
  </div>
- <button style="width:240px" onclick="startGame()">🏁 START RACE</button>
- <div class="menuButtons">
-  <button onclick="enableTilt()">📱 TILT ON</button>
-  <button onclick="dailyReward()">🎁 DAILY BONUS</button>
-  <button onclick="buyUpgrade()">⚙️ UPGRADE</button>
-  <button onclick="showHelp()">❓ HOW TO PLAY</button>
- </div>
- <p id="help">GO: तेज | BRAKE: धीमे | LEFT/RIGHT: मोड़ें | NITRO: Boost</p>
- <p>Best Score: <b id="best">0</b></p>
 </div>
-
+<div id="error"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r160/three.min.js"></script>
 <script>
+(function(){
 "use strict";
-
 const $=id=>document.getElementById(id);
-const root=$("game");
-
-let scene,camera,renderer;
-let bike=new THREE.Group();
-let running=false,paused=false;
-let speed=0,score=0;
-let coins=Number(localStorage.brpCoins||0);
-let best=Number(localStorage.brpBest||0);
-let upgrade=Number(localStorage.brpUpgrade||0);
-let mapName="city",bikeColor=0xef2349;
-let steer=0,steerInput=0;
-let gas=false,brake=false,nitroOn=false;
-let tiltOn=false,tiltValue=0,tiltZero=null;
-let soundOn=true,audio=null,engine=null,engineGain=null;
-let spawnClock=0,coinClock=0,crashCooldown=0;
-let world=[],traffic=[],pickups=[],marks=[];
-let clock=new THREE.Clock();
-
-function material(color,rough=.8){
- return new THREE.MeshStandardMaterial({color,roughness:rough});
-}
-function addMesh(geo,mat,parent,x=0,y=0,z=0){
- const o=new THREE.Mesh(geo,mat);
- o.position.set(x,y,z);
- o.castShadow=true;o.receiveShadow=true;
- parent.add(o);
- return o;
-}
-function box(w,h,d,color,x,y,z,parent=scene){
- return addMesh(new THREE.BoxGeometry(w,h,d),material(color),parent,x,y,z);
-}
-
-function init3D(){
- scene=new THREE.Scene();
- scene.background=new THREE.Color(0x87c9ee);
- scene.fog=new THREE.Fog(0x87c9ee,45,180);
- camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,300);
- camera.position.set(0,5.5,11);
-
- renderer=new THREE.WebGLRenderer({antialias:true});
- renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
- renderer.setSize(innerWidth,innerHeight);
- root.appendChild(renderer.domElement);
-
- scene.add(new THREE.HemisphereLight(0xffffff,0x68704d,2));
- const sun=new THREE.DirectionalLight(0xffffff,2);
- sun.position.set(-20,35,15);
- scene.add(sun);
-
- scene.add(bike);
- bike.position.set(0,0,4);
- makeBike();
- createMap();
+const game=$("game"), menu=$("menu"), startBtn=$("start"), pauseBtn=$("pause");
+let scene,camera,renderer,clock,bike,roadGroup,playerX=0,steer=0;
+let obstacles=[],coins3d=[],roadMarks=[],decor=[];
+let running=false,paused=false,score=0,coins=0,speed=24,spawnTimer=0,coinTimer=0;
+let animationStarted=false;
+const lanes=[-3,0,3];
+function showError(msg){$("error").textContent=msg;}
+function mat(color,roughness=.8){return new THREE.MeshStandardMaterial({color,roughness});}
+function addBox(parent,w,h,d,color,x,y,z){
+ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color));
+ m.position.set(x,y,z);parent.add(m);return m;
 }
 function makeBike(){
- bike.clear();
- const black=material(0x10151c,.4);
- const silver=material(0xb6c4d0,.3);
-
- for(const z of [-1,1]){
-  const wheel=addMesh(new THREE.CylinderGeometry(.47,.47,.23,20),black,bike,0,.5,z);
-  wheel.rotation.z=Math.PI/2;
-  const rim=addMesh(new THREE.TorusGeometry(.31,.035,8,20),silver,bike,0,.5,z);
-  rim.rotation.y=Math.PI/2;
+ const g=new THREE.Group();
+ addBox(g,.85,.45,1.55,0xff263d,0,.7,0);
+ addBox(g,.62,.35,.55,0x151b25,0,1.05,-.15);
+ // wheels
+ for(const z of [-.58,.62]){
+  const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.38,.38,.18,20),mat(0x111111));
+  wheel.rotation.z=Math.PI/2;wheel.position.set(0,.38,z);g.add(wheel);
+  const hub=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.2,16),mat(0xb8c4d2));
+  hub.rotation.z=Math.PI/2;hub.position.set(0,.38,z);g.add(hub);
  }
- box(.22,.35,1.55,0xaaaaaa,0,.9,0,bike);
- box(.62,.43,.8,bikeColor,0,1.2,-.1,bike);
- box(.48,.16,.62,0x141922,0,1.47,.48,bike);
- box(.22,.5,.25,bikeColor,0,1.05,-.72,bike);
- box(.85,.08,.1,0xb7c2cc,0,1.48,-.9,bike);
-
- // Rider
- const rider=addMesh(new THREE.CylinderGeometry(.25,.32,.85,16),black,bike,0,2.05,.05);
- rider.rotation.x=-.35;
- addMesh(new THREE.SphereGeometry(.31,16,12),material(0xf3f3f3,.2),bike,0,2.66,-.2);
- box(.38,.12,.1,0x111827,0,2.65,-.45,bike);
- box(.3,.18,.12,0xffff9a,0,1.35,-.94,bike);
- box(.3,.1,.1,0xff0000,0,1.1,.91,bike);
+ // rider body and helmet
+ const body=new THREE.Mesh(new THREE.SphereGeometry(.32,16,12),mat(0x246bdb));
+ body.scale.set(.8,1.3,.7);body.position.set(0,1.45,-.12);g.add(body);
+ const head=new THREE.Mesh(new THREE.SphereGeometry(.24,16,12),mat(0xffd3a1));
+ head.position.set(0,1.9,.05);g.add(head);
+ const helmet=new THREE.Mesh(new THREE.SphereGeometry(.26,16,12),mat(0xffc928));
+ helmet.position.set(0,2.03,.05);g.add(helmet);
+ const handle=addBox(g,1.2,.08,.12,0xaaaaaa,0,1.22,.55);
+ g.position.set(0,0,4);
+ scene.add(g);return g;
 }
-function clearWorld(){
- [...world,...traffic,...pickups,...marks].forEach(o=>scene.remove(o));
- world=[];traffic=[];pickups=[];marks=[];
-}
-function addWorld(o){world.push(o);return o}
-
-function tree(x,z){
- const g=new THREE.Group();scene.add(g);g.position.set(x,0,z);addWorld(g);
- addMesh(new THREE.CylinderGeometry(.15,.22,1.7,8),material(0x714321),g,0,.85,0);
- addMesh(new THREE.ConeGeometry(1.25,3,9),material(0x16783a),g,0,2.9,0);
-}
-function house(x,z){
- const g=new THREE.Group();scene.add(g);g.position.set(x,0,z);addWorld(g);
- addMesh(new THREE.BoxGeometry(4,2.6,3.6),material(0xd9b27c),g,0,1.3,0);
- const roof=addMesh(new THREE.ConeGeometry(3,1.7,4),material(0x983f29),g,0,3.35,0);
- roof.rotation.y=Math.PI/4;
-}
-function building(x,z){
- const g=new THREE.Group();scene.add(g);g.position.set(x,0,z);addWorld(g);
- const h=7+Math.random()*14;
- addMesh(new THREE.BoxGeometry(5,h,5),material(0xa5b6c4),g,0,h/2,0);
- for(let y=2;y<h;y+=2){
-  for(let x2 of [-1.4,1.4])
-   addMesh(new THREE.BoxGeometry(.85,.85,.08),material(0x6da6c1),g,x2,y,2.54);
- }
-}
-function palm(x,z){
- const g=new THREE.Group();scene.add(g);g.position.set(x,0,z);addWorld(g);
- addMesh(new THREE.CylinderGeometry(.15,.24,3,8),material(0x90653e),g,0,1.5,0);
- for(let i=0;i<7;i++){
-  const a=i*Math.PI*2/7;
-  const leaf=addMesh(new THREE.BoxGeometry(.2,.12,2.6),material(0x277e36),g,Math.sin(a),3,Math.cos(a));
-  leaf.rotation.y=a;
- }
-}
-function createMap(){
- clearWorld();
- const groundColor=mapName==="desert"?0xc49a59:mapName==="village"?0x347a35:0x4e7350;
- const sky=mapName==="desert"?0xe8b879:mapName==="village"?0x91d1ee:0x87c9ee;
- scene.background.set(sky);scene.fog.color.set(sky);
-
- addWorld(box(220,.2,300,groundColor,0,-.3,-110));
- addWorld(box(13,.15,300,0x30343a,0,-.17,-110));
-
- for(let z=-290;z<10;z+=12){
-  marks.push(box(.14,.035,5,0xffffff,0,-.075,z));
-  for(let x of [-6.35,6.35])marks.push(box(.18,.06,3,0xffe9a5,x,-.07,z));
- }
- if(mapName==="city"){
-  for(let z=-285;z<0;z+=13){building(-10,z);building(10,z-6);}
- }else if(mapName==="village"){
-  for(let z=-285;z<0;z+=12){
-   tree(-10,z);tree(10,z-5);
-   if(Math.round(Math.abs(z))%24===0){house(-16,z-4);house(16,z-8);}
-  }
- }else if(mapName==="desert"){
-  for(let z=-285;z<0;z+=12){palm(-10,z);tree(10,z-5);}
- }else{
-  addWorld(box(32,.12,300,0x168cc4,25,-.37,-110));
-  for(let z=-285;z<0;z+=15){building(-10,z);tree(10,z);}
-  for(let z=-290;z<10;z+=6){
-   addWorld(box(.2,1.1,.2,0xe4e8e8,6.8,.5,z));
+function buildWorld(){
+ scene=new THREE.Scene();scene.background=new THREE.Color(0x8bc8ee);scene.fog=new THREE.Fog(0x8bc8ee,35,115);
+ camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,180);
+ camera.position.set(0,6.3,11.5);camera.lookAt(0,1,-10);
+ renderer=new THREE.WebGLRenderer({antialias:true});
+ renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);
+ renderer.shadowMap.enabled=true;game.innerHTML="";game.appendChild(renderer.domElement);
+ scene.add(new THREE.HemisphereLight(0xffffff,0x526070,2));
+ const sun=new THREE.DirectionalLight(0xffffff,2.2);sun.position.set(-8,15,8);scene.add(sun);
+ // ground and road
+ const ground=new THREE.Mesh(new THREE.PlaneGeometry(150,180),mat(0x4d9b55));ground.rotation.x=-Math.PI/2;ground.position.set(0,-.08,-45);scene.add(ground);
+ const road=new THREE.Mesh(new THREE.PlaneGeometry(10,180),mat(0x343b46));road.rotation.x=-Math.PI/2;road.position.set(0,0,-45);scene.add(road);
+ // road edges
+ for(const x of [-5.15,5.15]){const edge=new THREE.Mesh(new THREE.BoxGeometry(.18,.06,180),mat(0xffffff));edge.position.set(x,.04,-45);scene.add(edge);}
+ roadMarks=[];
+ for(let z=12;z>-100;z-=9){for(const x of [-1.67,1.67]){
+  const mark=new THREE.Mesh(new THREE.BoxGeometry(.12,.035,4),mat(0xf4f4f4));mark.position.set(x,.04,z);scene.add(mark);roadMarks.push(mark);
+ }}
+ // roadside trees and simple buildings
+ decor=[];
+ for(let z=12;z>-100;z-=10){
+  for(const side of [-1,1]){
+   const x=side*(8+Math.random()*4);
+   if(Math.random()>.35){
+    const trunk=addBox(scene,.35,2,.35,0x79512e,x,1,z);
+    const crown=new THREE.Mesh(new THREE.ConeGeometry(1.25,3,8),mat(0x16733a));crown.position.set(x,3.2,z);scene.add(crown);
+    decor.push(trunk,crown);
+   }else{
+    const b=addBox(scene,2+Math.random()*2,2+Math.random()*5,2,0xc6a57d,x,1.2,z);
+    decor.push(b);
+   }
   }
  }
+ obstacles=[];coins3d=[];
+ bike=makeBike();clock=new THREE.Clock();
 }
-
-function makeTraffic(type){
- const g=new THREE.Group();scene.add(g);
- const color=type==="truck"?0x3377aa:type==="bus"?0xf1a82e:
- [0xe53939,0x277be0,0xffffff,0x222222][Math.floor(Math.random()*4)];
- const length=type==="truck"?4.5:type==="bus"?4:2.8;
- const width=type==="truck"?1.9:1.65;
- addMesh(new THREE.BoxGeometry(width,.85,length),material(color),g,0,.75,0);
- addMesh(new THREE.BoxGeometry(width*.8,.65,length*.45),material(0x8cc4df),g,0,1.48,-.15);
- for(let x of [-width*.43,width*.43]){
-  for(let z of [-length*.32,length*.32]){
-   const w=addMesh(new THREE.CylinderGeometry(.28,.28,.18,12),material(0x101010),g,x,.34,z);
-   w.rotation.z=Math.PI/2;
-  }
+function makeTraffic(){
+ const colors=[0xff8c28,0x2e7de0,0xe9e9e9,0x9a55d6];
+ const g=new THREE.Group();
+ const body=addBox(g,1.45,.85,2.2,colors[Math.floor(Math.random()*colors.length)],0,.72,0);
+ addBox(g,1.1,.55,1,0x9ed7ef,0,1.35,-.12);
+ for(const x of [-.53,.53])for(const z of [-.7,.7]){
+  const w=new THREE.Mesh(new THREE.CylinderGeometry(.23,.23,.15,14),mat(0x111111));w.rotation.z=Math.PI/2;w.position.set(x,.3,z);g.add(w);
  }
- return g;
+ g.position.set(lanes[Math.floor(Math.random()*3)],0,-90);scene.add(g);obstacles.push(g);
 }
-function spawnTraffic(){
- const r=Math.random();
- const type=r<.13?"truck":r<.35?"bus":"car";
- const o=makeTraffic(type);
- o.position.set([-4,0,4][Math.floor(Math.random()*3)],0,-145);
- traffic.push(o);
+function makeCoin(){
+ const c=new THREE.Mesh(new THREE.TorusGeometry(.42,.13,10,20),new THREE.MeshStandardMaterial({color:0xffd21f,metalness:.65,roughness:.25}));
+ c.position.set(lanes[Math.floor(Math.random()*3)],1,-90);scene.add(c);coins3d.push(c);
 }
-function spawnCoin(){
- const g=new THREE.Group();scene.add(g);
- addMesh(new THREE.TorusGeometry(.42,.12,10,22),material(0xffd12b,.3),g,0,1,0);
- g.position.set([-4,0,4][Math.floor(Math.random()*3)],0,-145);
- pickups.push(g);
+function reset(){
+ obstacles.forEach(o=>scene.remove(o));coins3d.forEach(o=>scene.remove(o));
+ obstacles=[];coins3d=[];playerX=0;bike.position.x=0;
+ score=0;coins=0;speed=24;spawnTimer=0;coinTimer=0;steer=0;updateHud();
 }
-
-function audioStart(){
- if(!soundOn)return;
- if(!audio){
-  const AC=window.AudioContext||window.webkitAudioContext;
-  if(!AC)return;
-  audio=new AC();
-  engine=audio.createOscillator();
-  engineGain=audio.createGain();
-  engine.type="sawtooth";engine.frequency.value=65;
-  engineGain.gain.value=0;
-  engine.connect(engineGain);engineGain.connect(audio.destination);
-  engine.start();
- }
- if(audio.state==="suspended")audio.resume();
-}
-function sfx(type){
- if(!soundOn)return;
- audioStart();if(!audio)return;
- const o=audio.createOscillator(),g=audio.createGain();
- o.connect(g);g.connect(audio.destination);
- const t=audio.currentTime;
- o.type=type==="crash"?"square":"sine";
- o.frequency.setValueAtTime(type==="coin"?900:type==="nitro"?140:400,t);
- o.frequency.exponentialRampToValueAtTime(70,t+.35);
- g.gain.setValueAtTime(.12,t);
- g.gain.exponentialRampToValueAtTime(.001,t+.4);
- o.start();o.stop(t+.41);
-}
-function updateAudio(){
- if(audio&&engineGain){
-  engine.frequency.setTargetAtTime(65+speed*2,audio.currentTime,.08);
-  engineGain.gain.setTargetAtTime(soundOn&&running&&!paused?.025:0,audio.currentTime,.1);
- }
-}
-function toggleSound(){
- soundOn=!soundOn;
- if(soundOn)audioStart();
- else if(audio&&engineGain)engineGain.gain.setTargetAtTime(0,audio.currentTime,.05);
-}
-
-function updateUI(){
- $("speed").textContent=Math.round(speed*2.2);
+function updateHud(){
  $("score").textContent=Math.floor(score);
  $("coins").textContent=coins;
- $("best").textContent=best;
- $("shopInfo").textContent="Coins: "+coins+" | Upgrade: "+upgrade;
- localStorage.brpCoins=coins;
- localStorage.brpBest=best;
- localStorage.brpUpgrade=upgrade;
+ $("speed").textContent=Math.floor(speed*3.6);
 }
-
-function startGame(){
- try{
-  mapName=$("map").value;
-  const colors={red:0xef2349,blue:0x168cff,green:0x00b76a,yellow:0xffcf27,white:0xf4f4f4};
-  bikeColor=colors[$("color").value]||0xef2349;
-  makeBike();createMap();
-  bike.position.set(0,0,4);
-  speed=0;score=0;steer=0;steerInput=0;
-  gas=false;brake=false;nitroOn=false;
-  spawnClock=0;coinClock=0;crashCooldown=0;
-  running=true;paused=false;
-  $("menu").classList.add("hidden");
-  $("message").textContent="";
-  audioStart();sfx("start");
-  updateUI();updateAudio();
- }catch(e){
-  console.error(e);
-  $("message").textContent="गेम शुरू नहीं हुआ। Refresh करें।";
- }
+function begin(){
+ if(!renderer){showError("3D लोड नहीं हुआ। इंटरनेट चालू करके पेज दोबारा खोलें।");return;}
+ reset();running=true;paused=false;
+ menu.classList.add("hidden");$("controls").classList.remove("hidden");pauseBtn.classList.remove("hidden");
+ pauseBtn.textContent="⏸ रोकें";clock.getDelta();
 }
-function finishGame(){
- if(!running)return;
- running=false;gas=false;nitroOn=false;
- sfx("crash");
- if(score>best)best=Math.floor(score);
- updateUI();
- $("message").textContent="💥 GAME OVER";
- $("menu").classList.remove("hidden");
- updateAudio();
+function endGame(){
+ running=false;paused=false;menu.classList.remove("hidden");$("controls").classList.add("hidden");pauseBtn.classList.add("hidden");
+ $("message").textContent="गेम खत्म! आपका स्कोर: "+Math.floor(score)+" • कॉइन: "+coins;
+ startBtn.textContent="फिर से खेलें";
 }
-function pauseGame(){
- if(!running)return;
- paused=!paused;
- $("message").textContent=paused?"⏸ PAUSED":"";
- updateAudio();
-}
-function dailyReward(){
- const today=new Date().toDateString();
- if(localStorage.brpDaily===today){alert("आज का बोनस पहले ही ले चुके हैं!");return;}
- localStorage.brpDaily=today;
- coins+=200;updateUI();sfx("coin");
- alert("🎁 200 Coins मिले!");
-}
-function buyUpgrade(){
- if(upgrade>=5){alert("Maximum upgrade पूरा हो गया!");return;}
- if(coins<300){alert("Upgrade के लिए 300 coins चाहिए।");return;}
- coins-=300;upgrade++;updateUI();
- alert("Upgrade Level "+upgrade+" हो गया! अब बाइक की स्पीड बढ़ेगी।");
-}
-function showHelp(){
- $("help").textContent="GO: तेज | BRAKE: धीमे | NITRO: Boost | LEFT/RIGHT: मोड़ें | फोन झुकाकर भी मोड़ सकते हैं।";
-}
-
-function nitroPress(){if(running&&!paused){nitroOn=true;sfx("nitro");}}
-function nitroRelease(){nitroOn=false;}
-
-function bindButton(id,down,up){
+function setSteer(v){steer=v;}
+function bindHold(id,v){
  const el=$(id);
- el.addEventListener("pointerdown",e=>{e.preventDefault();audioStart();down();});
- ["pointerup","pointercancel","pointerleave"].forEach(type=>{
-  el.addEventListener(type,e=>{e.preventDefault();up();});
- });
+ el.addEventListener("pointerdown",e=>{e.preventDefault();setSteer(v);});
+ ["pointerup","pointercancel","pointerleave"].forEach(ev=>el.addEventListener(ev,()=>{if(steer===v)setSteer(0);}));
 }
-bindButton("left",()=>steerInput=-1,()=>steerInput=0);
-bindButton("right",()=>steerInput=1,()=>steerInput=0);
-bindButton("gas",()=>gas=true,()=>gas=false);
-bindButton("brake",()=>brake=true,()=>brake=false);
-bindButton("nitro",nitroPress,nitroRelease);
-
+bindHold("left",-1);bindHold("right",1);
 window.addEventListener("keydown",e=>{
- if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"," "].includes(e.key))e.preventDefault();
- if(e.key==="ArrowLeft"||e.key==="a")steerInput=-1;
- if(e.key==="ArrowRight"||e.key==="d")steerInput=1;
- if(e.key==="ArrowUp"||e.key==="w")gas=true;
- if(e.key==="ArrowDown"||e.key==="s")brake=true;
- if(e.code==="Space")nitroPress();
+ if(e.key==="ArrowLeft"||e.key.toLowerCase()==="a")steer=-1;
+ if(e.key==="ArrowRight"||e.key.toLowerCase()==="d")steer=1;
+ if(e.key===" "&&running){paused=!paused;pauseBtn.textContent=paused?"▶ जारी रखें":"⏸ रोकें";}
 });
 window.addEventListener("keyup",e=>{
- if(["ArrowLeft","ArrowRight","a","d"].includes(e.key))steerInput=0;
- if(e.key==="ArrowUp"||e.key==="w")gas=false;
- if(e.key==="ArrowDown"||e.key==="s")brake=false;
- if(e.code==="Space")nitroRelease();
+ if(["ArrowLeft","a","A"].includes(e.key)&&steer<0)steer=0;
+ if(["ArrowRight","d","D"].includes(e.key)&&steer>0)steer=0;
 });
-
-async function enableTilt(){
- try{
-  if(!("DeviceOrientationEvent" in window)){
-   alert("इस फोन में Motion Sensor उपलब्ध नहीं है। Touch buttons इस्तेमाल करें।");
-   return;
-  }
-  if(typeof DeviceOrientationEvent.requestPermission==="function"){
-   const p=await DeviceOrientationEvent.requestPermission();
-   if(p!=="granted")throw new Error("Permission denied");
-  }
-  tiltOn=true;tiltZero=null;tiltValue=0;
-  $("tiltStatus").textContent="📱 Tilt: ON";
-  $("help").textContent="फोन सीधा रखें और फिर बाएँ-दाएँ झुकाएँ।";
-  if(!window.brpTiltListener){
-   window.brpTiltListener=true;
-   window.addEventListener("deviceorientation",e=>{
-    if(e.gamma===null||e.gamma===undefined)return;
-    if(tiltZero===null)tiltZero=e.gamma;
-    tiltValue=THREE.MathUtils.clamp((e.gamma-tiltZero)/25,-1,1);
-   });
-  }
- }catch(e){
-  alert("Motion Permission नहीं मिली। Chrome Settings में Motion Sensors Allow करें।");
+pauseBtn.addEventListener("click",()=>{if(!running)return;paused=!paused;pauseBtn.textContent=paused?"▶ जारी रखें":"⏸ रोकें";});
+startBtn.addEventListener("click",begin);
+function update(dt){
+ if(!running||paused)return;
+ score+=dt*10;speed=Math.min(48,24+score/180);
+ playerX+=steer*dt*7;playerX=Math.max(-3.5,Math.min(3.5,playerX));
+ bike.position.x=playerX;bike.rotation.z=-steer*.12;
+ spawnTimer+=dt;coinTimer+=dt;
+ if(spawnTimer>Math.max(.65,1.45-score/800)){makeTraffic();spawnTimer=0;}
+ if(coinTimer>1.05){makeCoin();coinTimer=0;}
+ const move=speed*dt;
+ roadMarks.forEach(m=>{m.position.z+=move;if(m.position.z>15)m.position.z-=108;});
+ decor.forEach(o=>{o.position.z+=move;if(o.position.z>18)o.position.z-=110;});
+ for(let i=obstacles.length-1;i>=0;i--){
+  const o=obstacles[i];o.position.z+=move;
+  if(Math.abs(o.position.z-bike.position.z)<1.5&&Math.abs(o.position.x-playerX)<1.35){endGame();return;}
+  if(o.position.z>12){scene.remove(o);obstacles.splice(i,1);}
  }
+ for(let i=coins3d.length-1;i>=0;i--){
+  const c=coins3d[i];c.position.z+=move;c.rotation.y+=dt*4;
+  if(Math.abs(c.position.z-bike.position.z)<1.6&&Math.abs(c.position.x-playerX)<1.2){
+   coins++;score+=25;scene.remove(c);coins3d.splice(i,1);
+  }else if(c.position.z>12){scene.remove(c);coins3d.splice(i,1);}
+ }
+ updateHud();
 }
-
 function animate(){
  requestAnimationFrame(animate);
- const dt=Math.min(clock.getDelta(),.04);
-
- if(running&&!paused){
-  const baseMax=45+upgrade*7;
-  const maxSpeed=nitroOn?Math.min(100,baseMax+35):gas?baseMax:brake?8:22;
-  speed=THREE.MathUtils.lerp(speed,maxSpeed,dt*1.8);
-
-  // Tilt and touch controls work together
-  const input=THREE.MathUtils.clamp(steerInput+(tiltOn?tiltValue:0),-1,1);
-  steer=THREE.MathUtils.lerp(steer,input,dt*5);
-  bike.position.x=THREE.MathUtils.clamp(bike.position.x+steer*speed*dt*.075,-5.2,5.2);
-  bike.rotation.z=THREE.MathUtils.lerp(bike.rotation.z,-steer*.42,dt*5);
-
-  const movement=speed*dt*.65;
-  marks.forEach(o=>{
-   o.position.z+=movement;
-   if(o.position.z>9)o.position.z-=300;
-  });
-  world.forEach(o=>{
-   o.position.z+=movement;
-   if(o.position.z>15)o.position.z-=300;
-  });
-
-  spawnClock+=dt;
-  if(spawnClock>Math.max(.8,2.3-speed*.012)){
-   spawnTraffic();spawnClock=0;
-  }
-  for(let i=traffic.length-1;i>=0;i--){
-   const o=traffic[i];
-   o.position.z+=movement;
-   if(o.position.z>12){
-    scene.remove(o);traffic.splice(i,1);continue;
-   }
-   if(Math.abs(o.position.z-bike.position.z)<2.1&&
-      Math.abs(o.position.x-bike.position.x)<1.55&&crashCooldown<=0){
-    crashCooldown=2;
-    finishGame();
-   }
-  }
-  crashCooldown=Math.max(0,crashCooldown-dt);
-
-  coinClock+=dt;
-  if(coinClock>2.4){spawnCoin();coinClock=0;}
-  for(let i=pickups.length-1;i>=0;i--){
-   const o=pickups[i];
-   o.position.z+=movement;
-   o.rotation.y+=dt*2;
-   if(Math.abs(o.position.z-bike.position.z)<2&&
-      Math.abs(o.position.x-bike.position.x)<1.5){
-    coins+=10;sfx("coin");updateUI();
-    scene.remove(o);pickups.splice(i,1);continue;
-   }
-   if(o.position.z>12){
-    scene.remove(o);pickups.splice(i,1);
-   }
-  }
-  score+=speed*dt*.8;
-  updateUI();updateAudio();
- }
-
- camera.position.x=THREE.MathUtils.lerp(camera.position.x,bike.position.x*.35,dt*3);
- camera.position.y=5.5;
- camera.position.z=11;
- camera.lookAt(bike.position.x*.25,1,-8);
- renderer.render(scene,camera);
+ const dt=Math.min(clock?clock.getDelta():0,.05);
+ if(running&&!paused)update(dt);
+ if(bike){camera.position.x+=(bike.position.x*.22-camera.position.x)*.04;camera.lookAt(bike.position.x*.15,1,-10);}
+ if(renderer&&scene&&camera)renderer.render(scene,camera);
 }
-
-function resize(){
- if(!renderer)return;
- camera.aspect=innerWidth/innerHeight;
- camera.updateProjectionMatrix();
- renderer.setSize(innerWidth,innerHeight);
+function init(){
+ try{
+  if(!window.THREE)throw new Error("Three.js CDN load नहीं हुआ");
+  buildWorld();
+  if(!animationStarted){animationStarted=true;animate();}
+ }catch(err){showError("लोडिंग समस्या: "+err.message+" | इंटरनेट चालू करके दोबारा खोलें।");console.error(err);}
 }
-window.addEventListener("resize",resize);
-
-window.startGame=startGame;
-window.enableTilt=enableTilt;
-window.dailyReward=dailyReward;
-window.buyUpgrade=buyUpgrade;
-window.showHelp=showHelp;
-window.pauseGame=pauseGame;
-window.toggleSound=toggleSound;
-
-try{
- init3D();
- updateUI();
- animate();
-}catch(e){
- console.error(e);
- $("message").textContent="3D गेम लोड नहीं हुआ। Internet जाँचकर Refresh करें।";
-}
+window.addEventListener("resize",()=>{
+ if(!renderer||!camera)return;
+ camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);
+});
+init();
+})();
 </script>
 </body>
 </html>
