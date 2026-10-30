@@ -1,0 +1,207 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BIKE RACING PRO</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#050914;color:white;font-family:Arial;text-align:center}
+header{padding:18px;background:#101a2d;color:#ff304f;font-size:26px;font-weight:bold}
+#menu{padding:20px}
+button{padding:14px 20px;margin:6px;border:0;border-radius:12px;background:#ff304f;color:white;font-weight:bold;font-size:16px}
+canvas{display:block;width:100%;height:65vh;background:#333}
+#hud{font-size:18px;padding:10px}
+#controls{display:flex;justify-content:space-around;flex-wrap:wrap}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header>🏍️ BIKE RACING PRO</header>
+
+<div id="menu">
+<h2>WELCOME RACER</h2>
+<p>Choose your bike racing challenge!</p>
+<button onclick="startGame()">START RACE</button>
+<button onclick="garage()">GARAGE</button>
+<button onclick="daily()">DAILY REWARD</button>
+<p id="coins">Coins: 0</p>
+</div>
+
+<div id="game" class="hidden">
+<div id="hud">
+Speed: <span id="speed">0</span> KM/H |
+Score: <span id="score">0</span> |
+Coins: <span id="earned">0</span>
+</div>
+<canvas id="road"></canvas>
+<div id="controls">
+<button ontouchstart="left=true" ontouchend="left=false" onmousedown="left=true" onmouseup="left=false">◀ LEFT</button>
+<button ontouchstart="right=true" ontouchend="right=false" onmousedown="right=true" onmouseup="right=false">RIGHT ▶</button>
+<button ontouchstart="nitro=true" ontouchend="nitro=false" onmousedown="nitro=true" onmouseup="nitro=false">⚡ NITRO</button>
+<button onmousedown="accelerate=true" onmouseup="accelerate=false" ontouchstart="accelerate=true" ontouchend="accelerate=false">GO ▲</button>
+<button onclick="pauseGame()">PAUSE</button>
+</div>
+</div>
+
+<script>
+const canvas=document.getElementById("road");
+const ctx=canvas.getContext("2d");
+let running=false,paused=false;
+let x=0,speed=0,score=0,coins=Number(localStorage.coins||0);
+let left=false,right=false,nitro=false,accelerate=false;
+let obstacles=[],roadLines=0,earned=0;
+
+document.getElementById("coins").innerText="Coins: "+coins;
+
+function resize(){
+ canvas.width=innerWidth*devicePixelRatio;
+ canvas.height=innerHeight*.65*devicePixelRatio;
+}
+resize();window.addEventListener("resize",resize);
+
+function garage(){
+ let choice=prompt("Choose bike color: red, blue, yellow or white");
+ if(choice) localStorage.bikeColor=choice;
+ alert("Bike customization saved!");
+}
+
+function daily(){
+ let today=new Date().toDateString();
+ if(localStorage.daily===today){alert("Reward already collected!");return;}
+ localStorage.daily=today;
+ coins+=100;localStorage.coins=coins;
+ document.getElementById("coins").innerText="Coins: "+coins;
+ alert("🎁 You received 100 coins!");
+}
+
+function startGame(){
+ document.getElementById("menu").classList.add("hidden");
+ document.getElementById("game").classList.remove("hidden");
+ x=0;speed=0;score=0;earned=0;
+ obstacles=[];
+ running=true;paused=false;
+ requestAnimationFrame(loop);
+}
+
+function pauseGame(){paused=!paused;}
+
+function drawBike(){
+ let cx=canvas.width/2+x*canvas.width*.07;
+ let cy=canvas.height*.78;
+ ctx.fillStyle=localStorage.bikeColor||"#ff304f";
+ ctx.fillRect(cx-15,cy-45,30,65);
+ ctx.fillStyle="#111";
+ ctx.fillRect(cx-12,cy-55,24,20);
+ ctx.fillStyle="#ddd";
+ ctx.fillRect(cx-23,cy-5,46,8);
+ ctx.fillStyle="#fff";
+ ctx.fillRect(cx-4,cy-40,8,8);
+}
+
+function spawnCar(){
+ if(Math.random()<.025)
+ obstacles.push({x:(Math.random()-.5)*1.6,y:-100});
+}
+
+function loop(){
+ if(!running)return;
+ requestAnimationFrame(loop);
+ if(paused)return;
+
+ let w=canvas.width,h=canvas.height;
+ ctx.clearRect(0,0,w,h);
+
+ // Sky and ground
+ ctx.fillStyle="#152b3e";
+ ctx.fillRect(0,0,w,h);
+ ctx.fillStyle="#276b36";
+ ctx.fillRect(0,h*.3,w,h*.7);
+
+ // Road
+ ctx.fillStyle="#292d34";
+ ctx.beginPath();
+ ctx.moveTo(w*.32,h*.25);
+ ctx.lineTo(w*.68,h*.25);
+ ctx.lineTo(w*.95,h);
+ ctx.lineTo(w*.05,h);
+ ctx.closePath();
+ ctx.fill();
+
+ // Road edges
+ ctx.strokeStyle="white";ctx.lineWidth=5;
+ ctx.beginPath();
+ ctx.moveTo(w*.32,h*.25);ctx.lineTo(w*.05,h);
+ ctx.moveTo(w*.68,h*.25);ctx.lineTo(w*.95,h);
+ ctx.stroke();
+
+ // Lane markings
+ roadLines+=speed*.12;
+ ctx.strokeStyle="#fff";ctx.lineWidth=4;
+ for(let i=0;i<10;i++){
+ let y=((i*100+roadLines)%(h*.8))+h*.2;
+ let rw= w*(.36+(y/h)*.55);
+ ctx.beginPath();
+ ctx.moveTo(w/2-rw*.25,y);
+ ctx.lineTo(w/2+rw*.25,y);
+ ctx.stroke();
+ }
+
+ if(left)x=Math.max(-3,x-.09);
+ if(right)x=Math.min(3,x+.09);
+
+ let max=nitro?220:accelerate?150:80;
+ speed+=(max-speed)*.04;
+
+ spawnCar();
+ obstacles.forEach(o=>{
+ o.y+=speed*.9;
+ let ox=w/2+o.x*w*.25;
+ let oy=o.y;
+ ctx.fillStyle="#ffc02e";
+ ctx.fillRect(ox-22,oy-35,44,65);
+ ctx.fillStyle="#172333";
+ ctx.fillRect(ox-14,oy-25,28,20);
+
+ let bx=w/2+x*w*.07;
+ if(Math.abs(ox-bx)<40 && Math.abs(oy-h*.78)<55){
+ speed=20;
+ o.y=h+100;
+ }
+ });
+ obstacles=obstacles.filter(o=>o.y<h+100);
+
+ drawBike();
+ score+=speed*.008;
+ if(Math.random()<.008){earned++;coins++;localStorage.coins=coins;}
+ document.getElementById("speed").innerText=Math.floor(speed);
+ document.getElementById("score").innerText=Math.floor(score);
+ document.getElementById("earned").innerText=earned;
+
+ if(score>5000){running=false;alert("🏆 YOU WIN!");endGame();}
+}
+
+function endGame(){
+ coins+=earned;
+ localStorage.coins=coins;
+ document.getElementById("menu").classList.remove("hidden");
+ document.getElementById("game").classList.add("hidden");
+ document.getElementById("coins").innerText="Coins: "+coins;
+}
+
+document.addEventListener("keydown",e=>{
+ if(e.key==="ArrowLeft"||e.key==="a")left=true;
+ if(e.key==="ArrowRight"||e.key==="d")right=true;
+ if(e.key==="ArrowUp"||e.key==="w")accelerate=true;
+ if(e.code==="Space")nitro=true;
+});
+document.addEventListener("keyup",e=>{
+ if(e.key==="ArrowLeft"||e.key==="a")left=false;
+ if(e.key==="ArrowRight"||e.key==="d")right=false;
+ if(e.key==="ArrowUp"||e.key==="w")accelerate=false;
+ if(e.code==="Space")nitro=false;
+});
+</script>
+</body>
+</html>
