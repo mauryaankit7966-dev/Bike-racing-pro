@@ -3,425 +3,591 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Bike Racing Pro 3D</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>BIKE RACING PRO 3D</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#07101e;color:white;font-family:Arial;overflow:hidden}
-header{text-align:center;background:#101c30;padding:12px;color:#ff2855;font-size:25px;font-weight:bold}
-#stats{display:flex;justify-content:space-around;padding:12px;background:#050b16;font-size:15px}
-#game{width:100%;height:65vh;display:block}
-#menu{text-align:center;background:#07101e;padding:8px}
-button,select{background:#ff2855;color:white;border:0;border-radius:12px;padding:13px 16px;font-size:16px;font-weight:bold;margin:4px}
-#controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;padding:8px}
-#controls button{height:65px;font-size:18px}
-#extra{display:flex;justify-content:space-around}
-#extra button{width:42%;height:58px}
-#message{text-align:center;color:#ffd34d;padding:4px;font-size:14px}
+body{margin:0;background:#07101c;color:white;font-family:Arial;overflow:hidden;touch-action:none}
+button,select{border:0;border-radius:12px;padding:12px;background:#ed254c;color:white;font-weight:bold;font-size:15px}
+button:active{transform:scale(.94)}
+#game{position:fixed;inset:0}
+#game canvas{width:100%;height:100%;display:block}
+#hud{position:absolute;top:8px;left:0;width:100%;display:flex;justify-content:space-around;z-index:2;pointer-events:none}
+.stat{background:#07101dcc;padding:9px 12px;border-radius:10px;font-size:13px}
+#controls{position:absolute;bottom:12px;left:0;width:100%;display:flex;justify-content:space-around;align-items:end;z-index:3}
+#controls button{width:65px;height:62px;background:#101c31e8;border:1px solid #ffffff55}
+#controls .gas{background:#ed254c}
+#menu{position:absolute;inset:0;background:linear-gradient(135deg,#091629f5,#102d43f5);z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:18px;overflow:auto}
+#menu h1{font-size:30px;color:#ff3155;margin:4px}
+#menu p{color:#b9c9dc;margin:4px}
+#menu select{width:240px;background:#20334c}
+.panel{background:#15263dcc;border:1px solid #ffffff22;border-radius:15px;padding:13px;width:min(330px,95%)}
+.menuButtons{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:min(330px,95%)}
+.menuButtons button{font-size:13px}
+#message{position:absolute;top:43%;left:0;width:100%;text-align:center;font-size:27px;font-weight:bold;text-shadow:0 3px 8px #000;z-index:4;pointer-events:none}
+#topButtons{position:absolute;right:8px;top:65px;z-index:3}
+#topButtons button{font-size:12px;padding:9px}
+#tiltStatus{position:absolute;top:65px;left:8px;z-index:3;font-size:11px;background:#07101dbb;padding:8px;border-radius:8px}
+.hidden{display:none!important}
+#shopInfo{font-size:12px;color:#dce7f4}
 </style>
 </head>
 <body>
 
-<header>🏍️ BIKE RACING PRO 3D</header>
+<div id="game"></div>
 
-<div id="stats">
-<span>Speed: <b id="speed">0</b> KM/H</span>
-<span>Score: <b id="score">0</b></span>
-<span>Coins: <b id="coins">0</b></span>
+<div id="hud">
+ <div class="stat">⚡ <span id="speed">0</span> KM/H</div>
+ <div class="stat">🏆 <span id="score">0</span></div>
+ <div class="stat">🪙 <span id="coins">0</span></div>
+</div>
+
+<div id="tiltStatus">📱 Tilt: OFF</div>
+<div id="topButtons">
+ <button onclick="toggleSound()">🔊 SOUND</button>
+</div>
+
+<div id="message"></div>
+
+<div id="controls">
+ <button id="left">◀</button>
+ <button id="brake">BRAKE</button>
+ <button id="nitro">⚡</button>
+ <button class="gas" id="gas">GO ▲</button>
+ <button id="right">▶</button>
 </div>
 
 <div id="menu">
-<select id="map">
-<option value="city">🏙️ CITY MAP</option>
-<option value="village">🌳 VILLAGE MAP</option>
-<option value="desert">🏜️ DESERT MAP</option>
-</select>
-<button onclick="startGame()">START GAME</button>
-<button onclick="tiltPermission()">📱 TILT ON</button>
+ <h1>🏍️ BIKE RACING PRO</h1>
+ <p>ULTIMATE 3D MOTORCYCLE RACING</p>
+ <div class="panel">
+  <p>SELECT YOUR MAP</p>
+  <select id="map">
+   <option value="city">🏙️ City Highway</option>
+   <option value="village">🌳 Village Road</option>
+   <option value="desert">🏜️ Desert Road</option>
+   <option value="river">🌊 River Bridge</option>
+  </select>
+  <p>SELECT YOUR BIKE COLOR</p>
+  <select id="color">
+   <option value="red">Red Superbike</option>
+   <option value="blue">Blue Superbike</option>
+   <option value="green">Green Superbike</option>
+   <option value="yellow">Yellow Superbike</option>
+   <option value="white">White Superbike</option>
+  </select>
+  <p id="shopInfo">Coins: 0</p>
+ </div>
+ <button style="width:240px" onclick="startGame()">🏁 START RACE</button>
+ <div class="menuButtons">
+  <button onclick="enableTilt()">📱 TILT ON</button>
+  <button onclick="dailyReward()">🎁 DAILY BONUS</button>
+  <button onclick="buyUpgrade()">⚙️ UPGRADE</button>
+  <button onclick="showHelp()">❓ HOW TO PLAY</button>
+ </div>
+ <p id="help">Mobile: Tilt phone or use buttons. PC: Arrow keys / WASD.</p>
+ <p>Best Score: <b id="best">0</b></p>
 </div>
 
-<div id="game"></div>
-
-<div id="message">Map चुनें और START GAME दबाएं</div>
-
-<div id="controls">
-<button id="left">⬅ LEFT</button>
-<button id="right">RIGHT ➡</button>
-<button onclick="nitro()">⚡ NITRO</button>
-</div>
-
-<div id="extra">
-<button id="go">GO ▲</button>
-<button id="brake">BRAKE ▼</button>
-<button onclick="pauseGame()">⏸ PAUSE</button>
-</div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r160/three.min.js"></script>
 <script>
-const container=document.getElementById("game");
+"use strict";
+
+/* BIKE RACING PRO 3D */
+
+const $=id=>document.getElementById(id);
+const root=$("game");
 
 const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x75b9e8);
-scene.fog=new THREE.Fog(0x75b9e8,35,110);
+scene.background=new THREE.Color(0x87c9ee);
+scene.fog=new THREE.Fog(0x87c9ee,45,180);
 
-const camera=new THREE.PerspectiveCamera(
-65,window.innerWidth/(window.innerHeight*.65),.1,200
-);
-camera.position.set(0,6,11);
-camera.lookAt(0,0,-10);
+const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,300);
+camera.position.set(0,5.5,11);
 
 const renderer=new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(window.innerWidth,window.innerHeight*.65);
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-container.appendChild(renderer.domElement);
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
+renderer.setSize(innerWidth,innerHeight);
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+root.appendChild(renderer.domElement);
 
-scene.add(new THREE.HemisphereLight(0xffffff,0x555555,2));
-
-const sun=new THREE.DirectionalLight(0xffffff,2);
-sun.position.set(-5,10,5);
+scene.add(new THREE.HemisphereLight(0xffffff,0x68704d,2));
+const sun=new THREE.DirectionalLight(0xffffff,2.1);
+sun.position.set(-20,35,15);
+sun.castShadow=true;
 scene.add(sun);
 
-function box(w,h,d,color,x,y,z){
-const m=new THREE.Mesh(
-new THREE.BoxGeometry(w,h,d),
-new THREE.MeshStandardMaterial({color})
-);
-m.position.set(x,y,z);
-scene.add(m);
-return m;
-}
+const mat=(color,rough=.85)=>new THREE.MeshStandardMaterial({color,roughness:rough});
 
-const road=box(12,.15,130,0x30343b,0,-.1,-50);
-const ground=box(180,.2,140,0x28783a,0,-.25,-50);
+let mapName="city",bikeColor=0xef2349;
+let running=false,paused=false;
+let speed=0,score=0,coins=Number(localStorage.brpCoins||0);
+let best=Number(localStorage.brpBest||0);
+let upgrade=Number(localStorage.brpUpgrade||0);
+let steer=0,steerInput=0,gas=false,brake=false,nitroOn=false;
+let tiltOn=false,tiltValue=0,tiltZero=0;
+let soundOn=true,audio=null,engine=null,engineGain=null;
+let lastTime=0,spawnClock=0,coinClock=0;
+let crashCooldown=0;
 
+const world=[];
+const traffic=[];
+const pickups=[];
+const laneMarks=[];
 let bike=new THREE.Group();
 scene.add(bike);
-bike.position.set(0,.5,3);
+bike.position.set(0,0,4);
 
-function cylinder(radius,length,color,x,y,z,rot=0){
-let m=new THREE.Mesh(
-new THREE.CylinderGeometry(radius,radius,length,20),
-new THREE.MeshStandardMaterial({color})
-);
-m.position.set(x,y,z);
-m.rotation.z=rot;
-bike.add(m);
-return m;
+function mesh(geometry,material,parent,x=0,y=0,z=0){
+ const o=new THREE.Mesh(geometry,material);
+ o.position.set(x,y,z);
+ o.castShadow=true;
+ o.receiveShadow=true;
+ parent.add(o);
+ return o;
 }
 
-// Bike wheels
-cylinder(.43,.22,0x111111,0,.1,.65,Math.PI/2);
-cylinder(.43,.22,0x111111,0,.1,-.65,Math.PI/2);
+function addBox(w,h,d,color,x,y,z,parent=scene){
+ return mesh(new THREE.BoxGeometry(w,h,d),mat(color),parent,x,y,z);
+}
 
-// Bike body
-box(.42,.65,.95,0xff174b,0,.65,0);
-box(.55,.16,.45,0x151515,0,1.02,.12);
-box(.12,.65,.12,0xaaaaaa,0,.65,-.55);
-box(.65,.1,.12,0x222222,0,1.05,-.65);
+function makeBike(){
+ bike.clear();
+ const bodyMat=mat(bikeColor,.3);
+ const black=mat(0x10151c,.4);
+ const silver=mat(0xb6c4d0,.3);
 
-// Headlight
-box(.3,.25,.15,0xffff88,0,.75,-.58);
-
-let leftObjects=[];
-let obstacles=[];
-let roadLines=[];
+ // Wheels
+ for(const z of [-1,1]){
+  const wheel=mesh(new THREE.CylinderGeometry(.47,.47,.23,24),black,bike,0,.5,z);
+  wheel.rotation.z=Math.PI/2;
+  const rim=mesh(new THREE.TorusGeometry(.31,.035,8,24),silver,bike,0,.5,z);
+  rim.rotation.y=Math.PI/2;
+  const hub=mesh(new THREE.CylinderGeometry(.07,.07,.25,12),silver,bike,0,.5,z);
+  hub.rotation.z=Math.PI/2;
+ }
+ // Frame and fuel tank
+ addBox(.22,.35,1.55,0xaaaaaa,0,.9,0,bike);
+ addBox(.62,.43,.8,bikeColor,0,1.2,-.1,bike);
+ addBox(.48,.16,.62,0x141922,0,1.47,.48,bike);
+ addBox(.22,.5,.25,bikeColor,0,1.05,-.72,bike);
+ // Handlebar
+ addBox(.85,.08,.1,0xb7c2cc,0,1.48,-.9,bike);
+ // Rider body
+ const rider=mesh(new THREE.CapsuleGeometry(.27,.68,5,12),black,bike,0,2.05,.05);
+ rider.rotation.x=-.35;
+ const helmet=mesh(new THREE.SphereGeometry(.31,18,14),mat(0xf3f3f3,.2),bike,0,2.66,-.2);
+ mesh(new THREE.BoxGeometry(.38,.12,.1),mat(0x111827),bike,0,2.65,-.45);
+ // Lights
+ mesh(new THREE.BoxGeometry(.3,.18,.12),mat(0xffff9a),bike,0,1.35,-.94);
+ const tail=mesh(new THREE.BoxGeometry(.3,.1,.1),mat(0xff0000),bike,0,1.1,.91);
+ const lamp=new THREE.PointLight(0xffefb0,2,20);
+ lamp.position.set(0,1.4,-1.2);
+ bike.add(lamp);
+}
+makeBike();
 
 function clearWorld(){
-[...leftObjects,...obstacles,...roadLines].forEach(o=>scene.remove(o));
-leftObjects=[];
-obstacles=[];
-roadLines=[];
+ [...world,...traffic,...pickups,...laneMarks].forEach(o=>scene.remove(o));
+ world.length=0;traffic.length=0;pickups.length=0;laneMarks.length=0;
 }
 
-function makeTree(x,z,type){
-let g=new THREE.Group();
+function groundAndRoad(){
+ const desert=mapName==="desert";
+ const groundColor=desert?0xc49a59:mapName==="village"?0x347a35:0x4e7350;
+ const sky=desert?0xe8b879:mapName==="village"?0x91d1ee:0x87c9ee;
+ scene.background.set(sky);
+ scene.fog.color.set(sky);
 
-if(type==="desert"){
-let trunk=new THREE.Mesh(
-new THREE.CylinderGeometry(.12,.18,1.6,8),
-new THREE.MeshStandardMaterial({color:0x997344})
-);
-trunk.position.y=.8;
-g.add(trunk);
-let cactus=new THREE.Mesh(
-new THREE.CylinderGeometry(.32,.32,2.1,8),
-new THREE.MeshStandardMaterial({color:0x278b36})
-);
-cactus.position.y=1.8;
-g.add(cactus);
-}else{
-let trunk=new THREE.Mesh(
-new THREE.CylinderGeometry(.13,.2,1.5,8),
-new THREE.MeshStandardMaterial({color:0x80502b})
-);
-trunk.position.y=.75;
-g.add(trunk);
+ const ground=addBox(220,.2,300,groundColor,0,-.3,-110);
+ world.push(ground);
+ const road=addBox(13,.15,300,0x30343a,0,-.17,-110);
+ world.push(road);
 
-let leaves=new THREE.Mesh(
-new THREE.ConeGeometry(1,2.5,8),
-new THREE.MeshStandardMaterial({
-color:type==="village"?0x167d29:0x218d40
-})
-);
-leaves.position.y=2.4;
-g.add(leaves);
+ // Roadside markings and lane separators
+ for(let z=-290;z<10;z+=12){
+  const line=addBox(.14,.035,5,0xffffff,0,-.075,z);
+  laneMarks.push(line);
+  for(let x of [-6.35,6.35]){
+   const edge=addBox(.18,.06,3,0xffe9a5,x,-.07,z);
+   laneMarks.push(edge);
+  }
+ }
 }
 
-g.position.set(x,0,z);
-scene.add(g);
-leftObjects.push(g);
+function tree(x,z,desert=false){
+ const g=new THREE.Group();
+ scene.add(g);g.position.set(x,0,z);world.push(g);
+ if(desert){
+  mesh(new THREE.CylinderGeometry(.17,.22,1.5,8),mat(0x98704b),g,0,.75,0);
+  mesh(new THREE.CylinderGeometry(.35,.35,2.3,8),mat(0x288b3d),g,0,2,0);
+  mesh(new THREE.BoxGeometry(.8,.18,.2),mat(0x288b3d),g,.4,1.8,0);
+ }else{
+  mesh(new THREE.CylinderGeometry(.15,.22,1.7,8),mat(0x714321),g,0,.85,0);
+  mesh(new THREE.ConeGeometry(1.25,3,9),mat(0x16783a),g,0,2.9,0);
+ }
+ return g;
 }
 
-function makeHouse(x,z){
-let g=new THREE.Group();
-
-let wall=new THREE.Mesh(
-new THREE.BoxGeometry(3,2,3),
-new THREE.MeshStandardMaterial({color:0xd5a56b})
-);
-wall.position.y=1;
-g.add(wall);
-
-let roof=new THREE.Mesh(
-new THREE.ConeGeometry(2.4,1.4,4),
-new THREE.MeshStandardMaterial({color:0x963e27})
-);
-roof.position.y=2.7;
-roof.rotation.y=Math.PI/4;
-g.add(roof);
-
-g.position.set(x,0,z);
-scene.add(g);
-leftObjects.push(g);
+function house(x,z){
+ const g=new THREE.Group();scene.add(g);g.position.set(x,0,z);world.push(g);
+ mesh(new THREE.BoxGeometry(4,2.6,3.6),mat(0xd9b27c),g,0,1.3,0);
+ const roof=mesh(new THREE.ConeGeometry(3,1.7,4),mat(0x983f29),g,0,3.35,0);
+ roof.rotation.y=Math.PI/4;
+ mesh(new THREE.BoxGeometry(.8,1.4,.08),mat(0x60402a),g,0,.7,1.84);
 }
 
-function makeBuilding(x,z){
-let h=4+Math.random()*9;
-let b=box(3,h,3,0x8795a5,x,h/2,z);
-leftObjects.push(b);
+function building(x,z){
+ const g=new THREE.Group();scene.add(g);g.position.set(x,0,z);world.push(g);
+ const h=7+Math.random()*14;
+ mesh(new THREE.BoxGeometry(5,h,5),mat([0xa5b6c4,0xc5b8a5,0x8796a7,0xd0d3d8][Math.floor(Math.random()*4)]),g,0,h/2,0);
+ for(let y=2;y<h;y+=2){
+  for(let xx of [-1.4,1.4]){
+   mesh(new THREE.BoxGeometry(.85,.85,.08),mat(0x6da6c1),g,xx,y,2.54);
+  }
+ }
+}
+
+function palm(x,z){
+ const g=new THREE.Group();scene.add(g);g.position.set(x,0,z);world.push(g);
+ mesh(new THREE.CylinderGeometry(.15,.24,3,8),mat(0x90653e),g,0,1.5,0);
+ for(let i=0;i<7;i++){
+  const a=i*Math.PI*2/7;
+  const leaf=mesh(new THREE.BoxGeometry(.2,.12,2.6),mat(0x277e36),g,Math.sin(a)*1.05,3,Math.cos(a)*1.05);
+  leaf.rotation.y=a;
+ }
+}
+
+function bridge(){
+ // River on the right side and bridge railings
+ const water=addBox(32,.12,300,0x168cc4,25,-.37,-110);
+ world.push(water);
+ const bank1=addBox(1,.35,300,0xc5a477,8,-.15,-110);
+ const bank2=addBox(1,.35,300,0xc5a477,42,-.15,-110);
+ world.push(bank1,bank2);
+ for(let z=-290;z<10;z+=6){
+  const rail=addBox(.2,1.1,.2,0xe4e8e8,6.8,.5,z);
+  const rail2=addBox(.2,1.1,.2,0xe4e8e8,7.3,.5,z);
+  world.push(rail,rail2);
+ }
 }
 
 function createMap(){
-clearWorld();
-
-let map=document.getElementById("map").value;
-
-if(map==="city"){
-scene.background.set(0x8ac7ed);
-scene.fog.color.set(0x8ac7ed);
-ground.material.color.set(0x555b5b);
-for(let z=-110;z<10;z+=9){
-makeBuilding(-10,z);
-makeBuilding(10,z);
-}
-}else if(map==="village"){
-scene.background.set(0x83d1ee);
-scene.fog.color.set(0x83d1ee);
-ground.material.color.set(0x338b38);
-
-for(let z=-110;z<10;z+=8){
-makeTree(-10,z,"village");
-makeTree(10,z-4,"village");
-if(z%16===0){
-makeHouse(-15,z-2);
-makeHouse(15,z-5);
-}
-}
-}else{
-scene.background.set(0xe9b66d);
-scene.fog.color.set(0xe9b66d);
-ground.material.color.set(0xc69a52);
-
-for(let z=-110;z<10;z+=8){
-makeTree(-10,z,"desert");
-makeTree(10,z-4,"desert");
-}
+ clearWorld();
+ groundAndRoad();
+ if(mapName==="city"){
+  for(let z=-285;z<0;z+=13){building(-10,z);building(10,z-6);}
+ }else if(mapName==="village"){
+  for(let z=-285;z<0;z+=12){
+   tree(-10,z);tree(10,z-5);
+   if(z%24===0){house(-16,z-4);house(16,z-8);}
+  }
+ }else if(mapName==="desert"){
+  for(let z=-285;z<0;z+=12){
+   palm(-10,z);tree(10,z-5,true);
+   const dune=mesh(new THREE.SphereGeometry(1,12,8),mat(0xd8ac6b),scene,Math.random()*50-25,-.3,z-6);
+   dune.scale.set(7,1.5,5);world.push(dune);
+  }
+ }else if(mapName==="river"){
+  bridge();
+  for(let z=-285;z<0;z+=15){
+   building(-10,z);
+   tree(10,z);
+  }
+ }
 }
 
-// Lane markings
-for(let z=-110;z<10;z+=9){
-let line=box(.13,.03,4,0xffffff,0,.01,z);
-roadLines.push(line);
+function makeTraffic(type){
+ const g=new THREE.Group();scene.add(g);
+ let color=type==="truck"?0x3377aa:type==="bus"?0xf1a82e:[0xe53939,0x277be0,0xffffff,0x222222][Math.floor(Math.random()*4)];
+ const length=type==="truck"?4.5:type==="bus"?4:2.8;
+ const width=type==="truck"?1.9:1.65;
+ mesh(new THREE.BoxGeometry(width,.85,length),mat(color),g,0,.75,0);
+ mesh(new THREE.BoxGeometry(width*.8,.65,length*.45),mat(0x8cc4df),g,0,1.48,-.15);
+ for(let x of [-width*.43,width*.43]){
+  for(let z of [-length*.32,length*.32]){
+   const w=mesh(new THREE.CylinderGeometry(.28,.28,.18,12),mat(0x101010),g,x,.34,z);
+   w.rotation.z=Math.PI/2;
+  }
+ }
+ g.userData={type};
+ scene.add(g);
+ return g;
 }
 
-// Obstacles
-for(let i=0;i<8;i++){
-let color=map==="village"?0x2288ff:
-map==="desert"?0x996633:0xffaa00;
-
-let o=box(1.1,1.4,1.4,color,
-[-3,0,3][Math.floor(Math.random()*3)],
-.7,-20-i*14);
-
-obstacles.push(o);
-}
+function spawnTraffic(){
+ const type=Math.random()<.13?"truck":Math.random()<.22?"bus":"car";
+ const o=makeTraffic(type);
+ o.position.set([-4,0,4][Math.floor(Math.random()*3)],0,-145);
+ traffic.push(o);
 }
 
-let speed=0,score=0,coins=0;
-let running=false,paused=false;
-let movingLeft=false,movingRight=false;
-let nitroActive=false;
-let audio=null;
-let engineGain=null;
-
-function sound(){
-if(!audio){
-audio=new (window.AudioContext||window.webkitAudioContext)();
-let oscillator=audio.createOscillator();
-engineGain=audio.createGain();
-oscillator.type="sawtooth";
-oscillator.frequency.value=75;
-engineGain.gain.value=0;
-oscillator.connect(engineGain);
-engineGain.connect(audio.destination);
-oscillator.start();
-}
-if(audio.state==="suspended")audio.resume();
+function spawnCoin(){
+ const g=new THREE.Group();scene.add(g);
+ const c=mesh(new THREE.TorusGeometry(.42,.12,10,22),mat(0xffd12b,.3),g,0,1,0);
+ g.position.set([-4,0,4][Math.floor(Math.random()*3)],0,-145);
+ pickups.push(g);
 }
 
-function updateSound(){
-if(engineGain){
-engineGain.gain.setTargetAtTime(
-running&&!paused?.025:0,audio.currentTime,.1
-);
+function audioStart(){
+ if(!soundOn)return;
+ if(!audio){
+  const AC=window.AudioContext||window.webkitAudioContext;
+  if(!AC)return;
+  audio=new AC();
+  engine=audio.createOscillator();
+  engineGain=audio.createGain();
+  engine.type="sawtooth";engine.frequency.value=65;
+  engineGain.gain.value=0;
+  engine.connect(engineGain);engineGain.connect(audio.destination);
+  engine.start();
+ }
+ if(audio.state==="suspended")audio.resume();
 }
+
+function sfx(type){
+ if(!soundOn)return;
+ audioStart();if(!audio)return;
+ const o=audio.createOscillator(),g=audio.createGain();
+ o.connect(g);g.connect(audio.destination);
+ const t=audio.currentTime;
+ o.type=type==="crash"?"square":"sine";
+ o.frequency.setValueAtTime(type==="coin"?900:type==="nitro"?140:400,t);
+ o.frequency.exponentialRampToValueAtTime(type==="nitro"?850:70,t+.35);
+ g.gain.setValueAtTime(.12,t);
+ g.gain.exponentialRampToValueAtTime(.001,t+.4);
+ o.start();o.stop(t+.41);
+}
+
+function updateAudio(){
+ if(audio&&engineGain){
+  engine.frequency.setTargetAtTime(65+speed*2,audio.currentTime,.08);
+  engineGain.gain.setTargetAtTime(soundOn&&running&&!paused?.025:0,audio.currentTime,.1);
+ }
+}
+
+function toggleSound(){
+ soundOn=!soundOn;
+ if(soundOn)audioStart();
+ else if(audio)engineGain.gain.setTargetAtTime(0,audio.currentTime,.05);
+}
+
+function updateUI(){
+ $("speed").textContent=Math.round(speed*2.2);
+ $("score").textContent=Math.floor(score);
+ $("coins").textContent=coins;
+ $("best").textContent=best;
+ $("shopInfo").textContent="Coins: "+coins+" | Upgrade Level: "+upgrade;
+ localStorage.brpCoins=coins;
+ localStorage.brpBest=best;
+ localStorage.brpUpgrade=upgrade;
 }
 
 function startGame(){
-sound();
-createMap();
-score=0;
-coins=0;
-speed=0;
-bike.position.x=0;
-running=true;
-paused=false;
-document.getElementById("message").innerText="🏁 RACE START!";
-updateSound();
+ mapName=$("map").value;
+ const colors={red:0xef2349,blue:0x168cff,green:0x00b76a,yellow:0xffcf27,white:0xf4f4f4};
+ bikeColor=colors[$("color").value]||0xef2349;
+ makeBike();createMap();
+ bike.position.set(0,0,4);
+ speed=0;score=0;steer=0;steerInput=0;
+ gas=false;brake=false;nitroOn=false;
+ spawnClock=0;coinClock=0;crashCooldown=0;
+ traffic.forEach(o=>scene.remove(o));traffic.length=0;
+ pickups.forEach(o=>scene.remove(o));pickups.length=0;
+ running=true;paused=false;
+ $("menu").classList.add("hidden");
+ $("message").textContent="";
+ audioStart();sfx("start");
+}
+
+function finishGame(){
+ if(!running)return;
+ running=false;
+ sfx("crash");
+ if(score>best)best=Math.floor(score);
+ updateUI();
+ $("message").textContent="💥 GAME OVER";
+ $("menu").classList.remove("hidden");
+ updateAudio();
 }
 
 function pauseGame(){
-paused=!paused;
-document.getElementById("message").innerText=
-paused?"GAME PAUSED":"RACE CONTINUED";
-updateSound();
+ if(!running)return;
+ paused=!paused;
+ $("message").textContent=paused?"⏸ PAUSED":"";
+ updateAudio();
 }
 
-function nitro(){
-if(running&&!paused){
-nitroActive=true;
-setTimeout(()=>nitroActive=false,3000);
-}
-}
-
-function moveBike(direction){
-if(!running||paused)return;
-bike.position.x+=direction*.55;
-bike.position.x=Math.max(-4,Math.min(4,bike.position.x));
-bike.rotation.z=-direction*.15;
+function dailyReward(){
+ const today=new Date().toDateString();
+ if(localStorage.brpDaily===today){alert("आज का reward पहले ही ले चुके हो!");return;}
+ localStorage.brpDaily=today;
+ coins+=200;updateUI();sfx("coin");
+ alert("🎁 200 Coins मिले!");
 }
 
-function holdButton(id,callback){
-let el=document.getElementById(id);
-el.addEventListener("touchstart",e=>{
-e.preventDefault();callback(true);
-},{passive:false});
-el.addEventListener("touchend",()=>callback(false));
-el.addEventListener("mousedown",()=>callback(true));
-el.addEventListener("mouseup",()=>callback(false));
-el.addEventListener("mouseleave",()=>callback(false));
+function buyUpgrade(){
+ if(coins<300){alert("Upgrade के लिए 300 coins चाहिए।");return;}
+ if(upgrade>=5){alert("Maximum upgrade पूरा हो गया!");return;}
+ coins-=300;upgrade++;
+ updateUI();alert("Bike upgrade level "+upgrade+" हो गया!");
 }
 
-holdButton("left",v=>movingLeft=v);
-holdButton("right",v=>movingRight=v);
-holdButton("go",v=>speed=v?150:0);
-holdButton("brake",v=>speed=v?35:0);
+function showHelp(){
+ $("help").textContent="GO: तेज चलें | BRAKE: धीमे हों | NITRO: तेज boost | LEFT/RIGHT: मोड़ें | फोन झुकाकर भी चला सकते हैं।";
+}
 
-let tilt=0;
+function nitroPress(){if(running&&!paused){nitroOn=true;sfx("nitro");}}
+function nitroRelease(){nitroOn=false;}
 
-function tiltPermission(){
-if(typeof DeviceOrientationEvent!=="undefined" &&
-typeof DeviceOrientationEvent.requestPermission==="function"){
-DeviceOrientationEvent.requestPermission().then(result=>{
-if(result==="granted")window.addEventListener("deviceorientation",tiltControl);
+function bindButton(id,down,up){
+ const el=$(id);
+ el.addEventListener("pointerdown",e=>{e.preventDefault();audioStart();down();});
+ ["pointerup","pointercancel","pointerleave"].forEach(type=>{
+  el.addEventListener(type,e=>{e.preventDefault();up();});
+ });
+}
+bindButton("left",()=>steerInput=-1,()=>steerInput=0);
+bindButton("right",()=>steerInput=1,()=>steerInput=0);
+bindButton("gas",()=>gas=true,()=>gas=false);
+bindButton("brake",()=>brake=true,()=>brake=false);
+bindButton("nitro",nitroPress,nitroRelease);
+
+window.addEventListener("keydown",e=>{
+ if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"," "].includes(e.key))e.preventDefault();
+ if(e.key==="ArrowLeft"||e.key==="a")steerInput=-1;
+ if(e.key==="ArrowRight"||e.key==="d")steerInput=1;
+ if(e.key==="ArrowUp"||e.key==="w")gas=true;
+ if(e.key==="ArrowDown"||e.key==="s")brake=true;
+ if(e.code==="Space")nitroPress();
 });
-}else{
-window.addEventListener("deviceorientation",tiltControl);
-}
-document.getElementById("message").innerText="📱 TILT CONTROL ON";
-}
-
-function tiltControl(e){
-if(e.gamma!==null){
-tilt=e.gamma;
-}
-}
-
-let last=0;
-
-function animate(time){
-requestAnimationFrame(animate);
-
-let dt=Math.min((time-last)/16.67,2);
-last=time;
-
-if(running&&!paused){
-
-if(movingLeft)moveBike(-.07*dt);
-if(movingRight)moveBike(.07*dt);
-
-if(Math.abs(tilt)>5){
-bike.position.x-=tilt*.0009*dt*speed/40;
-}
-bike.position.x=Math.max(-4,Math.min(4,bike.position.x));
-
-speed=Math.min(200,speed+(nitroActive?1.2:.08));
-score+=Math.round(speed*.02*dt);
-
-roadLines.forEach(line=>{
-line.position.z+=speed*.012*dt;
-if(line.position.z>8)line.position.z=-110;
+window.addEventListener("keyup",e=>{
+ if(["ArrowLeft","ArrowRight","a","d"].includes(e.key))steerInput=0;
+ if(e.key==="ArrowUp"||e.key==="w")gas=false;
+ if(e.key==="ArrowDown"||e.key==="s")brake=false;
+ if(e.code==="Space")nitroRelease();
 });
 
-leftObjects.forEach(o=>{
-o.position.z+=speed*.012*dt;
-if(o.position.z>12)o.position.z=-110-Math.random()*30;
-});
-
-obstacles.forEach(o=>{
-o.position.z+=speed*.012*dt;
-if(o.position.z>5){
-o.position.z=-110-Math.random()*30;
-o.position.x=[-3,0,3][Math.floor(Math.random()*3)];
-coins+=1;
+async function enableTilt(){
+ try{
+  if(!("DeviceOrientationEvent" in window)){
+   alert("इस फोन में motion sensor उपलब्ध नहीं है। Touch controls इस्तेमाल करें।");return;
+  }
+  if(typeof DeviceOrientationEvent.requestPermission==="function"){
+   const p=await DeviceOrientationEvent.requestPermission();
+   if(p!=="granted")throw Error("Permission denied");
+  }
+  tiltOn=true;tiltZero=null;
+  $("tiltStatus").textContent="📱 Tilt: ON";
+  $("help").textContent="फोन सीधा रखकर calibrate करें, फिर बाएँ-दाएँ झुकाएँ।";
+  window.addEventListener("deviceorientation",e=>{
+   if(e.gamma===null)return;
+   if(tiltZero===null)tiltZero=e.gamma;
+   tiltValue=THREE.MathUtils.clamp((e.gamma-tiltZero)/25,-1,1);
+  });
+ }catch(e){
+  alert("Motion permission नहीं मिली। फोन की settings और browser permission जाँचें।");
+ }
 }
-if(Math.abs(o.position.z-bike.position.z)<1.3 &&
-Math.abs(o.position.x-bike.position.x)<.9){
-speed=0;
-running=false;
-document.getElementById("message").innerText="💥 GAME OVER! START AGAIN";
-updateSound();
-}
-});
+window.enableTilt=enableTilt;
+window.startGame=startGame;
+window.pauseGame=pauseGame;
+window.dailyReward=dailyReward;
+window.buyUpgrade=buyUpgrade;
+window.showHelp=showHelp;
+window.toggleSound=toggleSound;
 
-}
+/* GAME LOOP */
+const clock=new THREE.Clock();
 
-document.getElementById("speed").innerText=Math.round(speed);
-document.getElementById("score").innerText=score;
-document.getElementById("coins").innerText=coins;
+function animate(){
+ requestAnimationFrame(animate);
+ const dt=Math.min(clock.getDelta(),.04);
 
-renderer.render(scene,camera);
+ if(running&&!paused){
+  const maxSpeed=nitroOn?90:gas?55:brake?9:25;
+  speed=THREE.MathUtils.lerp(speed,maxSpeed,dt*1.8);
+
+  let input=tiltOn?tiltValue:steerInput;
+  steer=THREE.MathUtils.lerp(steer,input,dt*5);
+  bike.position.x=THREE.MathUtils.clamp(bike.position.x+steer*speed*dt*.075,-5.2,5.2);
+  bike.rotation.z=THREE.MathUtils.lerp(bike.rotation.z,-steer*.42,dt*5);
+
+  // Road, scenery and lane movement
+  const movement=speed*dt*.65;
+  laneMarks.forEach(o=>{
+   o.position.z+=movement;
+   if(o.position.z>9)o.position.z-=300;
+  });
+  world.forEach(o=>{
+   o.position.z+=movement;
+   if(o.position.z>15)o.position.z-=300;
+  });
+
+  // Traffic
+  spawnClock+=dt;
+  if(spawnClock>Math.max(.75,2.3-speed*.012)){
+   spawnTraffic();spawnClock=0;
+  }
+  traffic.forEach(o=>{
+   o.position.z+=movement;
+   if(o.position.z>10){
+    o.position.z=-140-Math.random()*45;
+    o.position.x=[-4,0,4][Math.floor(Math.random()*3)];
+   }
+   if(Math.abs(o.position.z-bike.position.z)<2.1&&
+      Math.abs(o.position.x-bike.position.x)<1.55&&crashCooldown<=0){
+    crashCooldown=2;
+    finishGame();
+   }
+  });
+  crashCooldown=Math.max(0,crashCooldown-dt);
+
+  // Coins
+  coinClock+=dt;
+  if(coinClock>2.4){spawnCoin();coinClock=0;}
+  pickups.forEach(o=>{
+   o.position.z+=movement;
+   o.rotation.y+=dt*2;
+   if(o.position.z>7&&!o.userData.collected){
+    if(Math.abs(o.position.x-bike.position.x)<1.5){
+     o.userData.collected=true;
+     coins+=10;sfx("coin");updateUI();
+     scene.remove(o);
+    }
+   }
+  });
+  for(let i=pickups.length-1;i>=0;i--){
+   if(pickups[i].userData.collected||pickups[i].position.z>12){
+    scene.remove(pickups[i]);pickups.splice(i,1);
+   }
+  }
+
+  score+=speed*dt*.8;
+  updateUI();
+  updateAudio();
+ }
+
+ // Camera follows the motorcycle
+ camera.position.x=THREE.MathUtils.lerp(camera.position.x,bike.position.x*.35,dt*3);
+ camera.position.y=5.5;
+ camera.position.z=11;
+ camera.lookAt(bike.position.x*.25,1,-8);
+
+ renderer.render(scene,camera);
 }
 
 createMap();
-requestAnimationFrame(animate);
+updateUI();
+animate();
 
 window.addEventListener("resize",()=>{
-camera.aspect=window.innerWidth/(window.innerHeight*.65);
-camera.updateProjectionMatrix();
-renderer.setSize(window.innerWidth,window.innerHeight*.65);
+ camera.aspect=innerWidth/innerHeight;
+ camera.updateProjectionMatrix();
+ renderer.setSize(innerWidth,innerHeight);
 });
 </script>
 </body>
-</html>
+  </html>
+html>
